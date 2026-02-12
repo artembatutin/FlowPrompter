@@ -157,6 +157,9 @@ struct SettingsView: View {
 
 struct GeneralSettingsView: View {
     @EnvironmentObject var settingsStore: SettingsStore
+    @EnvironmentObject var appDataResetManager: AppDataResetManager
+    
+    @State private var showCacheClearConfirmation = false
     
     var body: some View {
         Form {
@@ -212,9 +215,60 @@ struct GeneralSettingsView: View {
                     settingsStore.resetToDefaults()
                 }
             }
+            
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Button {
+                        showCacheClearConfirmation = true
+                    } label: {
+                        if appDataResetManager.isClearing {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                Text("Clearing…")
+                            }
+                        } else {
+                            Text("Clear All App Data")
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .disabled(appDataResetManager.isClearing)
+                    .accessibilityIdentifier("clearAllAppDataButton")
+                    
+                    Text("Removes cached downloads, history, snippets, dictionary entries, and resets every FlowPrompter setting.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    
+                    if let lastClearedAt = appDataResetManager.lastClearedAt {
+                        Text("Last cleared: \(lastClearedAt.formatted(date: .abbreviated, time: .shortened))")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let error = appDataResetManager.lastError {
+                        Label(error, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    }
+                }
+            } header: {
+                Text("Storage")
+            }
         }
         .formStyle(.grouped)
         .padding()
+        .alert("Clear All App Data?", isPresented: $showCacheClearConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Clear", role: .destructive) {
+                Task {
+                    await appDataResetManager.clearAllData()
+                }
+            }
+        } message: {
+            Text("This removes every locally stored FlowPrompter file and preference. The action cannot be undone.")
+        }
     }
 }
 

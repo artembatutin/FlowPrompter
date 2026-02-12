@@ -166,8 +166,9 @@ class AudioEngine: ObservableObject {
         let bufferSize: AVAudioFrameCount = 4096
         
         inputNode.installTap(onBus: 0, bufferSize: bufferSize, format: nativeFormat) { [weak self] buffer, time in
+            guard let bufferCopy = buffer.makeCopy() else { return }
             Task { @MainActor [weak self] in
-                self?.processAudioBuffer(buffer, converter: converter, targetFormat: targetFormat)
+                self?.processAudioBuffer(bufferCopy, converter: converter, targetFormat: targetFormat)
             }
         }
         
@@ -263,7 +264,7 @@ class AudioEngine: ObservableObject {
         audioBuffers.append(processedBuffer)
         
         // Forward samples to stream delegate for real-time transcription
-        if let samples = processedBuffer.toFloatArray() {
+        if let samples = processedBuffer.toFloatArray()?.map({ max(-1.0, min(1.0, $0)) }) {
             streamDelegate?.audioEngine(self, didCaptureSamples: samples)
         }
         
@@ -429,5 +430,36 @@ extension AVAudioPCMBuffer {
     func toFloatArray() -> [Float]? {
         guard let channelData = floatChannelData?[0] else { return nil }
         return Array(UnsafeBufferPointer(start: channelData, count: Int(frameLength)))
+    }
+
+    /// Create a deep copy of the buffer so it can be safely used off the audio tap thread
+    func makeCopy() -> AVAudioPCMBuffer? {
+        guard let copy = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameLength) else { return nil }
+        copy.frameLength = frameLength
+
+        let channels = Int(format.channelCount)
+
+        if let source = floatChannelData, let destination = copy.floatChannelData {
+            for channel in 0..<channels {
+                destination[channel].assign(from: source[channel], count: Int(frameLength))
+            }
+            return copy
+        }
+
+        if let source = int16ChannelData, let destination = copy.int16ChannelData {
+            for channel in 0..<channels {
+                destination[channel].assign(from: source[channel], count: Int(frameLength))
+            }
+            return copy
+        }
+
+        if let source = int32ChannelData, let destination = copy.int32ChannelData {
+            for channel in 0..<channels {
+                destination[channel].assign(from: source[channel], count: Int(frameLength))
+            }
+            return copy
+        }
+
+        return nil
     }
 }

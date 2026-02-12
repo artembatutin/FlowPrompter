@@ -37,6 +37,7 @@ class SettingsWindowController {
             .environmentObject(dependencies.workspaceScanner)
             .environmentObject(dependencies.fileTagger)
             .environmentObject(dependencies.snippetManager)
+            .environmentObject(dependencies.appDataResetManager)
         
         let hostingController = NSHostingController(rootView: settingsView)
         

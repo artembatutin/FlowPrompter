@@ -23,6 +23,7 @@ struct FlowPrompterApp: App {
     @StateObject private var inputFieldDetector = AppDependencies.shared.inputFieldDetector
     @StateObject private var snippetManager = AppDependencies.shared.snippetManager
     @StateObject private var analyticsManager = AppDependencies.shared.analyticsManager
+    @StateObject private var appDataResetManager = AppDependencies.shared.appDataResetManager
     
     @State private var showingOnboarding = false
     
@@ -41,6 +42,7 @@ struct FlowPrompterApp: App {
                 .environmentObject(dictionaryManager)
                 .environmentObject(inputFieldDetector)
                 .environmentObject(snippetManager)
+                .environmentObject(appDataResetManager)
         } label: {
             menuBarLabel
         }
@@ -59,6 +61,7 @@ struct FlowPrompterApp: App {
                 .environmentObject(dictionaryManager)
                 .environmentObject(inputFieldDetector)
                 .environmentObject(snippetManager)
+                .environmentObject(appDataResetManager)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
@@ -77,6 +80,7 @@ struct FlowPrompterApp: App {
                 .environmentObject(dictionaryManager)
                 .environmentObject(inputFieldDetector)
                 .environmentObject(snippetManager)
+                .environmentObject(appDataResetManager)
         }
     }
     

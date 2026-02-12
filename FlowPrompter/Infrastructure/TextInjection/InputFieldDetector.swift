@@ -293,6 +293,14 @@ final class InputFieldDetector: ObservableObject {
         patterns = Self.defaultPatterns
         saveSettings()
     }
+
+    /// Restores all detector settings (patterns + behavior flags) to defaults
+    func resetAllSettingsToDefaults() {
+        patterns = Self.defaultPatterns
+        autoFocusEnabled = true
+        UserDefaults.standard.set(true, forKey: "InputFieldAutoFocusSet")
+        saveSettings()
+    }
     
     // MARK: - Private Methods
     

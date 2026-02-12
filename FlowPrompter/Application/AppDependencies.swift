@@ -35,6 +35,9 @@ class AppDependencies {
     let snippetManager: SnippetManager
     let streamingTranscriber: StreamingTranscriber
     let analyticsManager: AnalyticsManager
+    lazy private(set) var appDataResetManager: AppDataResetManager = {
+        AppDataResetManager(dependencies: self)
+    }()
     private var cancellables = Set<AnyCancellable>()
     
     /// The target application to inject text into (captured when recording starts)
@@ -99,12 +102,6 @@ class AppDependencies {
         self.correctionLearner = CorrectionLearner()
         self.correctionLearner.dictionaryManager = dictionaryManager
         
-        // Initialize syntax transformer
-        self.syntaxTransformer = SyntaxTransformer()
-        self.syntaxTransformer.caseTransformationsEnabled = settingsStore.caseTransformationsEnabled
-        self.syntaxTransformer.cliPatternsEnabled = settingsStore.cliPatternsEnabled
-        self.syntaxTransformer.codeSymbolsEnabled = shouldEnableCodeSymbols(for: nil)
-        
         // Initialize file tagging system
         self.workspaceScanner = WorkspaceScanner()
         self.fileTagger = FileTagger(workspaceScanner: workspaceScanner)
@@ -118,6 +115,12 @@ class AppDependencies {
         
         // Initialize analytics manager
         self.analyticsManager = AnalyticsManager()
+
+        // Initialize syntax transformer
+        self.syntaxTransformer = SyntaxTransformer()
+        self.syntaxTransformer.caseTransformationsEnabled = settingsStore.caseTransformationsEnabled
+        self.syntaxTransformer.cliPatternsEnabled = settingsStore.cliPatternsEnabled
+        self.syntaxTransformer.codeSymbolsEnabled = shouldEnableCodeSymbols(for: nil)
         
         // Set initial model selection from settings
         modelManager.selectModel(byName: settingsStore.selectedModel)

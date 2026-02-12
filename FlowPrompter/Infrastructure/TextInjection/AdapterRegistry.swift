@@ -104,6 +104,12 @@ final class AdapterRegistry: ObservableObject {
         saveAppConfigs()
     }
     
+    /// Clears every stored app configuration
+    func resetAppConfigs() {
+        appConfigs.removeAll()
+        saveAppConfigs()
+    }
+    
     /// Gets or creates a default config for an app
     func getOrCreateConfig(for bundleId: String, displayName: String) -> AppInjectionConfig {
         if let existing = appConfigs[bundleId] {
